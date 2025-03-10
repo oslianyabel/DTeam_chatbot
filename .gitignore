@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+.env
+tests/
+script.py
+.pytest_cache/
+.vscode/
+command.txt
+notas.txt
+chatbot.log
+chatbot.log.1
+create_assistant.py
+requirements-dev.txt
