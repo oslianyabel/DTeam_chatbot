@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 class Completions:
     def __init__(
         self,
-        messages,
         name="DTeam_Bot",
         model="radiance",
     ):
@@ -24,43 +23,32 @@ class Completions:
         )
         self.name = name
         self.model = model
-        self.messages = messages
         self.error_response = "Ha ocurrido un error, realice la consulta más tarde"
 
-    def add_msg(self, role: str, msg: str):
-        self.messages.append(
-            {
-                "role": role,
-                "content": msg,
-            }
-        )
-
-    async def submit_message(self, message, user_number=None):
+    async def submit_message(self, messages, user_number=None):
         last_time = time.time()
         logger.debug(f"Runnung {self.name} with {len(tools_func)} functions")
-        self.add_msg("user", message)
         while True:
             response = await self.client.chat.completions.create(
                 model=self.model,
-                messages=self.messages,
+                messages=messages,
                 tools=tools_json,
             )
             if response.choices[0].message.tool_calls:
-                await self.run_tools(response, user_number)
+                await self.run_tools(messages, response, user_number)
                 continue
 
             break
 
         ans = response.choices[0].message.content
-        self.add_msg("assistant", ans)
         logger.info(f"{self.name}: {ans}")
         logger.info(f"Performance de {self.name}: {time.time() - last_time}")
         return ans
 
-    async def run_tools(self, response, user_number) -> None:
+    async def run_tools(self, messages, response, user_number) -> None:
         tools = response.choices[0].message.tool_calls
         logger.info(f"{len(tools)} tools need to be called!")
-        self.messages.append(response.choices[0].message)
+        messages.append(response.choices[0].message)  # Peticion de tools
 
         tasks = []
         for tool in tools:
@@ -82,7 +70,8 @@ class Completions:
                 function_response = self.error_response
             else:
                 logger.info(f"{tool.function.name}: {function_response[:50]}")
-            self.messages.append(
+
+            messages.append(
                 {
                     "tool_call_id": tool.id,
                     "role": "tool",
