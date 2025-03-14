@@ -5,37 +5,39 @@ import time
 
 from openai import AsyncOpenAI
 
-from chatbot.core.config import config
-from chatbot.core.utils import tools_func, tools_json
-
 logger = logging.getLogger(__name__)
 
 
 class Completions:
     def __init__(
         self,
-        name="DTeam_Bot",
+        api_key,
+        name="RadianceCompletions",
         model="radiance",
+        tools_json=[],
+        functions={},
     ):
         self.client = AsyncOpenAI(
-            api_key=config.AVANGENIO_API_KEY,
+            api_key=api_key,
             base_url="https://apigateway.avangenio.net",
         )
         self.name = name
         self.model = model
-        self.error_response = "Ha ocurrido un error, realice la consulta más tarde"
+        self.tools_json = tools_json
+        self.functions = functions
+        self.error_response = "Ha ocurrido un error"
 
-    async def submit_message(self, messages, user_number=None):
+    async def submit_message(self, messages, user_id=None):
         last_time = time.time()
-        logger.debug(f"Runnung {self.name} with {len(tools_func)} functions")
+        logger.debug(f"Running {self.name} with {len(self.functions)} tools")
         while True:
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                tools=tools_json,
+                tools=self.tools_json,
             )
             if response.choices[0].message.tool_calls:
-                await self.run_tools(messages, response, user_number)
+                await self.run_tools(messages, response, user_id)
                 continue
 
             break
@@ -45,10 +47,10 @@ class Completions:
         logger.info(f"Performance de {self.name}: {time.time() - last_time}")
         return ans
 
-    async def run_tools(self, messages, response, user_number) -> None:
+    async def run_tools(self, messages, response, user_id) -> None:
         tools = response.choices[0].message.tool_calls
         logger.info(f"{len(tools)} tools need to be called!")
-        messages.append(response.choices[0].message)  # Peticion de tools
+        messages.append(response.choices[0].message)  # tools call
 
         tasks = []
         for tool in tools:
@@ -56,10 +58,10 @@ class Completions:
             function_args = json.loads(tool.function.arguments)
             logger.info(function_name)
             logger.info(function_args)
-            function_to_call = tools_func[function_name]
+            function_to_call = self.functions[function_name]
 
-            if user_number:
-                tasks.append(function_to_call(**function_args, user_number=user_number))
+            if user_id:
+                tasks.append(function_to_call(**function_args, user_id=user_id))
             else:
                 tasks.append(function_to_call(**function_args))
 

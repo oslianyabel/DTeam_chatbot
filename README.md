@@ -12,9 +12,15 @@
 - Divulgar servicios y misión de Dteam
 
 ## Endpoint
-### `POST /chat`
-  ## {
-      "thread_id": "12345",
-      "message": "Hola, ¿cómo estás?"
+## `POST /chat`
+  ### request example {
+      "chat_id": "12345",
+      "message": "Hola, ¿cómo estás?",
+      "secret": "Secret"
   }
 
+  ### response example {
+    "chat_id": "12345",
+    "message": "Bien...",
+    "interactions": 2
+  }

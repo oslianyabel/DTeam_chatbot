@@ -2,8 +2,16 @@ from pydantic import BaseModel
 
 
 class Message(BaseModel):
-    thread_id: str | None
+    chat_id: str | None
     message: str
+
+
+class MessageIn(Message):
+    secret: str
+
+
+class MessageOut(Message):
+    interactions: int
 
 
 class AssistantMessage(Message):

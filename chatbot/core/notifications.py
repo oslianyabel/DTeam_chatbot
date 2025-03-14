@@ -19,7 +19,7 @@ def send_email(EMAIL_TO, subject, message):
     email = EmailMessage()
     email["from"] = EMAIL
     email["to"] = EMAIL_TO
-    email["subject"] = "Dteam: " + subject
+    email["subject"] = "Dteam_chatbot: " + subject
     email.set_content(message)
 
     try:

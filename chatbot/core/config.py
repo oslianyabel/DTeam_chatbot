@@ -12,6 +12,7 @@ class EnvConfig(BaseSettings):
         extra = "ignore"
 
     ENVIRONMENT: Optional[str] = None
+    SECRET: Optional[str] = None
 
     AVANGENIO_API_KEY: Optional[str] = None
 
